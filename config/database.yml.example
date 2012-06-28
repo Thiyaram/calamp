@@ -1,0 +1,26 @@
+development:
+  adapter: postgresql
+  encoding: unicode
+  database: calamp_development
+  pool: 5
+  username: user
+  password: Password
+
+test: &test
+  adapter: postgresql
+  encoding: unicode
+  database: calamp_test
+  pool: 5
+  username: user
+  password: password
+
+production:
+  adapter: postgresql
+  encoding: unicode
+  database: calamp_production
+  pool: 5
+  username: user
+  password: password
+
+cucumber:
+  <<: *test
