@@ -1,0 +1,14 @@
+development:
+  server: localhost
+  port: 20500 
+  timeout: 1 #seconds
+
+test: &test
+  server: localhost
+  port: 20500 
+  timeout: 1 #seconds
+
+production:
+  server: localhost
+  port: 20500 
+  timeout: 1 #seconds
