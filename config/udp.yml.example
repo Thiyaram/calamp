@@ -2,13 +2,16 @@ development:
   server: localhost
   port: 20500 
   timeout: 1 #seconds
-
-test: &test
+  log_file: log/udp_server.log
+  
+test:
   server: localhost
   port: 20500 
   timeout: 1 #seconds
+  log_file: log/udp_server.log
 
 production:
   server: localhost
   port: 20500 
   timeout: 1 #seconds
+  log_file: log/udp_server.log

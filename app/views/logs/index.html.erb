@@ -1,0 +1,14 @@
+<table>
+  <tr>
+    <td colspan='2'><h2>UDP server logs</h2></td>
+  </tr>
+  <%
+    index = 0 
+    @logs.each do |log|   
+  %>
+    <tr class="<%= cycle('even-row','odd-row') %>"> 
+      <td><%= (index +=1) %></td>
+      <td><%= log %></td>
+    </tr>
+  <% end %>  
+</table>

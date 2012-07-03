@@ -3,32 +3,42 @@ require 'eventmachine'
 class UDPServer < EventMachine::Connection
   def initialize *args
     super
-    @@udp_logger ||= Logger.new("#{Rails.root}/log/udp_server.log")
+    self.class.logger
   end
 
   def post_init
-    self.class.logger.info "#{Time.now} client: #{client_addr} connected successfully. \r\n"
+    self.class.logger.info "#{Time.now} client: #{client_addr} connected successfully. \n"
   end
 
   def receive_data(data)
-    self.class.logger.info "#{Time.now} Client #{client_addr} sent data: #{data.inspect} \r\n"
-    send_data "success\n"
-    close_connection if data =~ /quit/i
+    begin
+      self.class.logger.info "#{Time.now} Client #{client_addr} sent data: #{data.inspect} \n"
+      message =  "success"
+      send_data message + "\n"
+      self.class.logger.info "#{Time.now} Sent response => '#{message}' to client #{client_addr} \n"
+      close_connection if data =~ /quit/i
+    rescue => e
+      Rails.logger.info "Error occured while processing TCP data. details => #{e.inspect}"
+    end
   end
 
   def unbind
-    self.class.logger.info "#{Time.now} client #{client_addr} successfully disconnnected. \r\n"
+    #self.class.logger.info "#{Time.now} client #{client_addr} successfully disconnnected. \n"
   end
   
   def client_addr
-    addr = get_peername[2,6].unpack "nC4"
-    port = addr.shift
-    ip   = addr.join(".")
-    [ip, port].join(":")
+   begin
+      addr = get_peername[2,6].unpack "nC4"
+      port = addr.shift
+      ip   = addr.join(".")
+      [ip, port].join(":")
+    rescue => e
+      "<unknown ip>"
+    end  
   end
   
   def self.logger
-    @@udp_logger  
+    @@udp_logger ||= Logger.new("#{Rails.root}/#{UDPConfig.log_file}")  
   end
   
 end
