@@ -14,6 +14,6 @@ end
 while($running) do
  EventMachine.run {
     EventMachine::open_datagram_socket UDPConfig.server, UDPConfig.port, UDPServer
-    Rails.logger.info "#{Time.now} Started UDPserver at port #{UDPConfig.port}. \r\n"
+    UDPServer.logger.info "#{Time.now} Started UDPserver at port #{UDPConfig.port}. \r\n"
   }
 end
