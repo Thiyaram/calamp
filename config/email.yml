@@ -1,0 +1,11 @@
+development:
+  from: "Calamp Listener"
+  cc: "shivashankar@localhost"
+
+test:
+  from: "Calamp Listener"
+  cc: "shivashankar@localhost"
+
+production:
+  from: email
+  cc: email

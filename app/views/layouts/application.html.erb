@@ -1,16 +1,80 @@
 <!DOCTYPE html>
-<html>
-<head>
-  <title>Calamp</title>
-  <%= stylesheet_link_tag    "application", :media => "all" %>
-  <%= javascript_include_tag "application" %>
-  <%= csrf_meta_tags %>
-</head>
-<body>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= content_for?(:title) ? yield(:title) : "Calamp ListenerCa" %></title>
+    <%= stylesheet_link_tag "application", :media => "all" %>
 
- <div id='layout_container'>
-    <%= yield %>
-  </div>
 
-</body>
+  </head>
+  <body>
+    <div class="navbar navbar-fixed-top navbar-inverse">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="btn btn-navbar" data-target=".nav-collapse" data-toggle="collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="#">
+            <span><%= image_tag 'logo.png', :class => 'logo' %></span>
+          </a>
+          <div class="container nav-collapse">
+
+          	<ul class="nav pull-right ">
+
+							<li class="dropdown">
+								<a href="#" class="dropdown-toggle" data-toggle="dropdown">Devices
+								<b class="caret"></b></a>
+					     	<ul class="dropdown-menu ">
+										<li class="pr"><%= link_to "Add", "#" %></li>
+							     	<li class="pr"><%= link_to "List", admin_devices_path  %></li>
+								</ul>
+
+				     <li class="dropdown">
+								<a href="#" class="dropdown-toggle" data-toggle="dropdown">Users
+								<b class="caret"></b></a>
+	             	<ul class="dropdown-menu ">
+										<li class="pr"><%= link_to "Add", new_admin_user_path  %></li>
+							     	<li class="pr"><%= link_to "List", admin_users_url  %></li>
+								</ul>
+
+							<li class="dropdown">
+								<a href="#" class="dropdown-toggle" data-toggle="dropdown">Logs
+								<b class="caret"></b></a>
+	             	<ul class="dropdown-menu ">
+							     	<li class="pr"><%= link_to "List", "#"  %></li>
+								</ul>
+
+							<li class="dropdown">
+								<a href="#" class="dropdown-toggle" data-toggle="dropdown">Myprofile
+								<b class="caret"></b></a>
+	             	<ul class="dropdown-menu ">
+										<li class="pr"><%= link_to "Myprofile", "#"  %></li>
+								</ul>
+								<li class="pr"><%= link_to "Logout", "/logout"  %></li>
+
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+
+    <div class="container content-panel">
+      <div class="content">
+        <div class="row">
+          <div class='span11'><%= yield %> </div>
+        </div><!--/row-->
+      </div><!--/content-->
+    </div>
+
+
+    <!-- Javascripts
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <%= javascript_include_tag "application" %>
+    <%= yield :script %>
+
+  </body>
 </html>

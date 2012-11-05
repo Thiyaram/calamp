@@ -1,0 +1,16 @@
+                List of relations
+ Schema |       Name        |   Type   |  Owner  
+--------+-------------------+----------+---------
+ public | auditlogs         | table    | thiyagu
+ public | auditlogs_id_seq  | sequence | thiyagu
+ public | devices           | table    | thiyagu
+ public | devices_id_seq    | sequence | thiyagu
+ public | roles             | table    | thiyagu
+ public | roles_id_seq      | sequence | thiyagu
+ public | schema_migrations | table    | thiyagu
+ public | sessions          | table    | thiyagu
+ public | sessions_id_seq   | sequence | thiyagu
+ public | users             | table    | thiyagu
+ public | users_id_seq      | sequence | thiyagu
+(11 rows)
+

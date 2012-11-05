@@ -1,0 +1,11 @@
+development:
+  from: "Calamp Listener"
+  cc: "myeamil"
+
+test:
+  from: "Calamp Listener"
+  cc: "myemail"
+
+production:
+  from: email
+  cc: email

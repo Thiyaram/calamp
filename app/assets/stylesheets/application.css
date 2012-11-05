@@ -11,3 +11,44 @@
  *= require_self
  *= require_tree .
 */
+.navbar .nav > li > a{
+	color:white!important;
+	padding-top:15px!important;
+}
+.form-horizontal{
+	background-color:whiteSmoke!important;
+	border-top:1px solid #E5E5E5!important;
+	padding:20px;
+}
+.pagination ul{
+	float:right;
+}
+.btn-danger a{
+	color:white!important;
+}
+.alerts{
+	color:green;
+	float:right;
+}
+.add-btn{
+	float:right;
+	padding-top:20px;
+}
+.header{
+	height:50px;
+	width:inherit;
+}
+.required abbr[title]{
+	color:red!important;
+}
+.span11{
+	margin-left:70px !important;
+}
+
+abbr{
+	color: red;
+}
+
+a#passwordreset_btn{
+  color:white !important
+}

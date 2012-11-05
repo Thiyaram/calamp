@@ -1,0 +1,19 @@
+<hr>
+<%= render 'layouts/messages' %>
+<%= render 'layouts/alert_block' %>
+
+<%= simple_form_for [:admin, @user], :html => { :class => 'form-horizontal' } do |f| %>
+<%= flash[:alert] %><%=flash[:notice]%>
+	<%= f.input :name, :input_html => { :id => "u_name", :maxlength => 50 } %>
+	<%= f.input :email, :input_html => { :id => "u_email", :maxlength => 150 } %>
+	<%= f.input :password, :input_html => { :id => "u_password", :maxlength => 50 } %>
+	<%= f.input :password_confirmation, :input_html => { :id => "u_con"} %>
+	<span style="padding:0px 20px 0px 130px">Role </span>
+	<%= select_tag :role_id, options_for_select(role_list_based_on_current_user) %><br>
+
+<div class="form-actions">
+    <%= f.button :submit, :class => 'btn-primary u_sub' %>
+    <%= link_to t('.cancel', :default => t("helpers.links.cancel")),
+                admin_users_path, :class => 'btn' %>
+  </div>
+<% end %>

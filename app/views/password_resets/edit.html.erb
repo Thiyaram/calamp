@@ -1,0 +1,32 @@
+<div class="login_container">
+  <%= form_tag("/password_resets/#{@user.password_reset_token}", :method => :put) do %>
+    <div class='title'>Reset My password</div>
+   
+      <%= render 'layouts/messages' %>
+      <%= render 'layouts/errormessage' %>
+    
+    <div class='content'>
+
+      <div class="formRow">
+        <div class="input-prepend">
+          <span class="add-on"><i class="icon-lock"  title='Password'></i></span>
+          <%= password_field_tag "user[new_password]", nil, {:maxlength => 50, :placeholder => 'Password'} %>
+        </div>
+      </div>
+
+      <div class="formRow">
+        <div class="input-prepend">
+          <span class="add-on"><i class="icon-lock"  title='Password Confirmation'></i></span>
+          <%= password_field_tag "user[new_password_confirmation]", nil, {:maxlength => 50, :placeholder => 'Password Confirmation'} %>
+        </div>
+      </div>
+    </div>
+
+    <div class="signin-bar clearfix">
+      <button class="btn btn-inverse " id="updatepassword_btn" type="submit">Update password</button>
+      <span class='pull-right'><%= link_to 'Back to login', '/' %></span>
+    </div>
+  <% end %>
+</div>
+
+<% javascript 'password_resets.js' %>

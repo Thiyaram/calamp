@@ -1,0 +1,39 @@
+<% content_for :script do %>
+  <%= javascript_include_tag :devices %>
+<% end %>
+
+
+<div class="header">
+  <h2 style="float:left">Devices</h2>
+	<span class="add-btn"><%= link_to t('.new', :default => t("helpers.links.+ Add new device")),
+            new_admin_user_path, :class => 'btn btn-primary' %></span>
+</div>
+
+<table class="table table-striped table-bordered dTableR dataTable" id="devices-datatable", name="devices">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>IMEI</th>
+      <th>Registered Date</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @devices.each do |device| %>
+      <tr>
+        <td><%= device.id %></td>
+        <td><%= link_to device.imei, admin_device_path(device) %></td>
+        <td><%= device.registered_date %></td>
+        <td>
+          <%= link_to  device.status == true ? 'Deactivate' : 'Activate', '/admin/devices/activate_device' , :class => 'btn btn-small btn-info' %>
+          <%= link_to 'Edit', edit_admin_device_path(device), :class => 'btn btn-small' %>
+          <%= link_to 'X', admin_device_path(device),
+                      :method => :delete,
+                      :data => { :confirm => t('.confirm', :default => t("helpers.links.confirm", :default => 'Are you sure?')) },
+                      :class => 'btn btn-mini btn-danger' %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+

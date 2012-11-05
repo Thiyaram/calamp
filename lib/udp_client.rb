@@ -6,7 +6,6 @@ class UDPClient
     @server = server
     @port   = port
   end
-  
   def send_message(message)
     @client.send(message, 0, @server, @port)
   end

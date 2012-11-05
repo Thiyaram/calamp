@@ -1,0 +1,3 @@
+<% flash.each do|name, error| %>
+	<div class="alert alert-<%= name == 'success' ? 'notice' :'error' %>">
+<% end %>

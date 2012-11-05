@@ -1,0 +1,77 @@
+@import "twitter/bootstrap/bootstrap";
+
+@import "twitter/bootstrap/responsive";
+
+@iconSpritePath: asset-path('twitter/bootstrap/glyphicons-halflings.png');
+@iconWhiteSpritePath: asset-path('twitter/bootstrap/glyphicons-halflings-white.png');
+
+
+@fontAwesomeEotPath: '/assets/fontawesome-webfont.eot';
+@fontAwesomeWoffPath: '/assets/fontawesome-webfont.woff';
+@fontAwesomeTtfPath: '/assets/fontawesome-webfont.ttf';
+@fontAwesomeSvgPath: '/assets/fontawesome-webfont.svg';
+
+// Font Awesome
+@import "fontawesome";
+
+@navbarLinkColor : lighten(@grayLight, 25%);
+
+
+body {
+  padding-top: 60px;
+	height:100%;
+  font-family: 'Ubuntu' !important;
+  height: 100%;
+}
+
+
+a.brand{
+  color: #FFF !important;
+  font-family: 'Ubuntu Condensed' !important;
+  font-size :24px !important;
+
+}
+
+.red{
+  color: #D14;
+}
+
+span.error span.help-inline, div.error p{
+  color: #B94A48;
+}
+
+
+div.dataTables_length label{float:left;text-align:left}
+div.dataTables_length select{width:75px}
+div.dataTables_filter label{float:right}
+div.dataTables_info{padding-top:20px;float:left;}
+div.dataTables_paginate{ font-size: 12px;}
+
+.dataTables_wrapper{position:relative;overflow:hidden}
+.dataTables_wrapper table.table {clear:both;margin-bottom:6px!important;max-width:inherit}
+		.dataTables_wrapper table.table thead .sorting,table.table thead .sorting_asc,table.table thead .sorting_desc,table.table thead .sorting_asc_disabled,table.table thead .sorting_desc_disabled{cursor:hand;cursor:pointer}
+		.dataTables_wrapper table.table thead .sorting{background: #EEE url(sort_both.png) no-repeat center right}
+		.dataTables_wrapper table.table thead .sorting_asc{background: #EEE url(sort_asc.png) no-repeat center right}
+		.dataTables_wrapper table.table thead .sorting_desc{background: #EEE url(sort_desc.png) no-repeat center right}
+		.dataTables_wrapper table.table thead .sorting_asc_disabled{background: #EEE url(../lib/datatables/images/sort_asc_disabled.png) no-repeat center right}
+		.dataTables_wrapper table.table thead .sorting_desc_disabled{background: #EEE url(../lib/datatables/images/sort_desc_disabled.png) no-repeat center right}
+		.dataTables_wrapper table.dataTable th:active{outline:none}
+		.dataTables_wrapper .row{margin:0 0 5px}
+		.dataTables_wrapper select{min-height:inherit}
+		.dataTables_wrapper table + .row{margin-bottom:0;margin-top:10px}
+        .dataTables_scrollBody{-webkit-overflow-scrolling:touch}
+		.dataTables_wrapper .top,.dataTables_wrapper .bottom{background-color:#f5f5f5;border:1px solid #CCC;padding:15px}
+		.top .dataTables_info{float:none}
+		.dataTables_empty{text-align:center!important;font-size:15px;background:#fff!important;padding:20px 0!important}
+		.dataTables_scroll{clear:both;margin-bottom:10px}
+		.dataTables_scrollHeadInner table.table-bordered{-webkit-border-radius:4px 4px 0 0;border-radius:4px 4px 0 0;border-bottom:none}
+		.dataTables_scrollHeadInner table.table-bordered,.dataTables_scrollHeadInner table.table-bordered thead{border-bottom:none}
+		.dataTables_scrollBody table{border-top:none}
+		.dataTables_processing{position:absolute;top:50%;margin-top:-24px;z-index:100;left:50%;width:250px;margin-left:-125px;border:1px solid #ddd;text-align:center;color:#000;background:#fff;font-size:15px!important;-webkit-box-shadow:0 0 4px rgba(0,0,0,0.2);-moz-box-shadow:0 0 4px rgba(0,0,0,0.2);-ms-box-shadow:0 0 4px rgba(0,0,0,0.2);box-shadow:0 0 4px rgba(0,0,0,0.2);padding:10px 0}
+		.dataTables_wrapper .center{text-align:center}
+		.dataTables_wrapper .details,.dataTables_wrapper .details:hover{background:#ddd!important}
+		.dataTables_wrapper .details table td{background:#fff!important}
+		.dataTables_scrollHeadInner table.table,.dataTables_wrapper .details table.table{margin:0!important}
+        .dataTables_wrapper .dt_actions {float:left;margin-right:20px}
+		.dataTables_empty {cursor:default}
+		.dTableR {width:100% !important}

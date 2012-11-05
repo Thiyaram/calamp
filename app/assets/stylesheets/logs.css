@@ -1,0 +1,32 @@
+// Place all the styles related to the logs controller here.
+// They will automatically be included in application.css.
+// You can use Sass (SCSS) here: http://sass-lang.com/
+$white     : white
+$gray      : darken($white, 5%)
+$darkgray  : darken($white, 20%)
+
+body
+  background-color: $darkgray
+  font-family: arial
+
+#layout_container
+  background-color: $white
+  width: 90%
+  margin: auto
+  padding: 10px
+  height: 700px
+
+.even-row
+  background-color: $white
+
+.odd-row
+  background-color: $gray
+
+
+table
+  font-size: 12px
+  color: black
+  width: 98%
+  margin: auto
+  tr td
+    padding: 4px

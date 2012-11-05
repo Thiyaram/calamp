@@ -1,0 +1,18 @@
+ <pre>
+Hi <%= @user.name.capitalize %>
+
+	We have disabled your account due to multiple unsucessful attempts to login into your account. 
+
+	<%= link_to 'Click here', edit_session_url(@user.activation_key) %> to activate your account.             
+
+	(OR) copy and paste the following link in the browser to activate it.
+	<%= edit_session_url(@user.activation_key) %>
+
+
+Regards
+
+Support Team
+Calamp Listener
+
+</pre>
+ 

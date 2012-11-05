@@ -25,7 +25,7 @@ class UDPServer < EventMachine::Connection
   def unbind
     #self.class.logger.info "#{Time.now} client #{client_addr} successfully disconnnected. \n"
   end
-  
+
   def client_addr
    begin
       addr = get_peername[2,6].unpack "nC4"
