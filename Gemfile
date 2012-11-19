@@ -5,6 +5,14 @@ gem 'pg'
 gem 'jquery-rails'
 gem 'bcrypt-ruby', '~> 3.0.0'
 gem 'simple_form'
+gem 'bindata'
+gem 'whenever', :require => false
+gem 'eventmachine'
+gem 'daemons-rails'
+gem 'wash_out'
+gem 'american_date'
+gem "hex_string", "~> 1.0.0"
+gem 'geohex'
 
 group :assets do
   gem 'sass-rails',   '~> 3.2.3'
@@ -23,13 +31,6 @@ group :development do
   gem 'bullet'
   gem 'brakeman'
 	gem 'populator'
-end
-
-group :udp do
-  gem 'whenever', :require => false
-  gem 'eventmachine'
-  gem 'daemons-rails'
-  gem 'wash_out'
 end
 
 group :development, :test do

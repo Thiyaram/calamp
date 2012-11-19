@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20121101093550) do
+ActiveRecord::Schema.define(:version => 20121117083427) do
 
   create_table "auditlogs", :force => true do |t|
     t.integer  "user_id",          :default => 0
@@ -37,6 +37,45 @@ ActiveRecord::Schema.define(:version => 20121101093550) do
 
   add_index "devices", ["active"], :name => "index_devices_on_active"
   add_index "devices", ["imei", "deleted_at"], :name => "index_devices_on_imei_and_deleted_at", :unique => true
+
+  create_table "messages", :force => true do |t|
+    t.text     "received_data", :null => false
+    t.text     "hex_data"
+    t.string   "client_addr"
+    t.datetime "created_at",    :null => false
+    t.datetime "updated_at",    :null => false
+    t.integer  "device_id"
+  end
+
+  add_index "messages", ["device_id"], :name => "index_messages_on_device_id"
+  add_index "messages", ["received_data"], :name => "index_messages_on_received_data"
+
+  create_table "options_headers", :force => true do |t|
+    t.integer  "device_id",                :null => false
+    t.integer  "message_id",               :null => false
+    t.string   "options_byte",             :null => false
+    t.integer  "mobile_id_length"
+    t.string   "mobile_id"
+    t.integer  "mobile_id_type_length"
+    t.string   "mobile_id_type"
+    t.integer  "authentication_length"
+    t.string   "authentication_data"
+    t.integer  "routing_length"
+    t.string   "routing_data"
+    t.integer  "forwarding_length"
+    t.string   "forwarding_address"
+    t.string   "forwarding_port"
+    t.string   "forwarding_protocol"
+    t.string   "forwarding_operation"
+    t.integer  "resp_redirection_length"
+    t.string   "resp_redirection_address"
+    t.string   "resp_redirection_port"
+    t.datetime "created_at",               :null => false
+    t.datetime "updated_at",               :null => false
+  end
+
+  add_index "options_headers", ["device_id"], :name => "index_options_headers_on_device_id"
+  add_index "options_headers", ["message_id"], :name => "index_options_headers_on_message_id"
 
   create_table "roles", :force => true do |t|
     t.string   "name",        :limit => 15,  :null => false
