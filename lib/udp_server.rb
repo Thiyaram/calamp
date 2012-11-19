@@ -24,7 +24,7 @@ class UDPServer < EventMachine::Connection
     begin
       status = save_data_to_db(data.to_s, client_addr)
       self.class.logger.info "#{Time.now} - Unable to save message #{data} \n" unless status
-      message = User.count.to_s + ' success'
+      message = 'success'
       send_data message + "\n"
       self.class.logger.info "#{Time.now} Sent response => '#{message}' to client #{client_addr} \n"
       close_connection if data =~ /quit/i
