@@ -11,4 +11,10 @@
 <div>Decoded Message</div>
 <div class='well'>
   <%= @log.decoded_message.inspect %>
-<div>
+</div>
+
+
+<div>Expected Server Response</div>
+<div class='well'>
+  <%= Message.generate_response(@log.received_data).inspect %>
+</div>
