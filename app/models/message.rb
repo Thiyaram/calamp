@@ -26,6 +26,58 @@ class Message < ActiveRecord::Base
   belongs_to :device, :conditions => "device_id > 0"
 
 
+  def self.generate_response(data)
+    return nil unless data.present?
+    msg          =  data.to_hex_string.split(' ')
+    decoded_msg  = []
+    options_byte = msg.shift
+    decoded_msg << options_byte
+    options_byte = options_byte.hex.to_s(2)
+    # IF bit 0 (LSB) is set it means Mobile Id length is set
+    if options_byte[-1] == '1'
+      mobile_id_length = msg.shift
+      decoded_msg << mobile_id_length
+      decoded_msg << msg.shift(mobile_id_length.hex).join(" ")
+    end
+     # IF bit 1 is 1 it means Mobile Id Type length is set
+    if options_byte[-2] == '1'
+      mobile_id_type_length = msg.shift
+      decoded_msg << mobile_id_type_length
+      decoded_msg << msg.shift(mobile_id_type_length.hex).join(" ")
+    end
+    # IF bit 2 is 1 it means Authentication Word length is set. It default value is 4
+    if options_byte[-3] == '1'
+      auth_word_length = msg.shift
+      decoded_msg << auth_word_length
+      decoded_msg << msg.shift(auth_word_length.hex).join(" ")
+    end
+    # IF bit 3 is 1 it means Routing length is set. It can be upto 8 bytes
+    if options_byte[-4] == '1'
+      routing_length = msg.shift
+      decoded_msg <<  routing_length
+      decoded_msg <<  msg.shift(routing_length.hex).join(" ")
+    end
+    # IF bit 4 is 1 it means Forwarding length is set. Value normally is 8 if present
+    if options_byte[-5] == '1'
+      decoded_msg <<  msg.shift(9).join(" ")
+    end
+    # IF bit 5 is 1 it means Response Redirection is set. Usually the value is 6
+    if options_byte[-6] == '1'
+      decoded_msg <<  msg.shift(7).join(" ")
+    end
+    service_type = msg.shift
+    message_type = msg.shift
+
+    decoded_msg << '02' # service type
+    decoded_msg << '01' # message type
+    decoded_msg <<  msg.shift(2).join(" ") #sequence number
+    decoded_msg << message_type
+    decoded_msg << '00' # acknowledgement success
+    decoded_msg << '00' #spare byte
+    decoded_msg << '00 00 00' #App version
+    (service_type =='01' and message_type == '02') ? decoded_msg.join(' ').to_byte_string : 'success'
+  end
+
   def received_data
     Base64::decode64(self[:received_data])
   end
@@ -104,6 +156,10 @@ class Message < ActiveRecord::Base
     }
   end
 
+  def accumulator_information(msg)
+
+  end
+
 
   def event_report_message(msg)
     message_content = {}
@@ -144,9 +200,16 @@ class Message < ActiveRecord::Base
     message_content[:accums]      = msg.shift(1).join("").hex
     message_content[:spare]       = msg.shift(1).join("").hex
     total_accumulators            = message_content[:accums].to_i
-    (0...total_accumulators).each do |i|
-      message_content["accumulator_#{i}".to_sym] = msg.shift(4).join("")
+    accumulator =  {}
+    acc_list = ['script_version', 'odometer', 'calculated_odometer', 'engine_hours',
+                'trip_identity_counter', 'engine_temperature', 'coolant_hot_indicator_status',
+                'fuel_level', 'fuel_level_remaining', 'trip_fuel_consumption',
+                'oil_pressure_indicator_status', 'seat_belt_indicator_status',
+                'battery_voltage', 'idle_time', 'mil_status', 'speed']
+    acc_list.each do |c|
+      accumulator[c.to_sym] = msg.shift(4).join("").hex
     end
+    message_content[:accumulator_data] = accumulator
     message_content
   end
 
@@ -186,12 +249,25 @@ class Message < ActiveRecord::Base
 
     message_content[:application_message_type]   = msg.shift(2).join("").hex
     message_content[:application_message_length] = msg.shift(2).join("").hex
+
+    app_msg = {}
+    case message_content[:application_message_type]
+      when 120
+        app_msg[:time]      = Time.at(msg.shift(4).join("").hex).utc
+        app_msg[:latitude]  = get_coordinate_from_hex( msg.shift(4).join("") )
+        app_msg[:longitude] = get_coordinate_from_hex( msg.shift(4).join("") )
+        app_msg[:obd_speed] = msg.pop(2).join("").hex
+        message_content[:application_message_data] = app_msg
+    end
     message_content
   end
 
+
+
   #latitude or longitude from Hex
   def get_coordinate_from_hex(hex_value)
-    d = signed_twos_complement_of_hex(hex_value)
+    #d = signed_twos_complement_of_hex(hex_value)
+    d = convert_to_signed_twos_complement(hex_value.hex, 32)
     d * ( 10 ** -7 ).to_f
   end
 
