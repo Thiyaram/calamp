@@ -55,6 +55,5 @@ group :test do
 end
 
 group :production do
-  gem 'airbrake'
   gem 'unicorn', '>=3.2.1', :require => false
 end
