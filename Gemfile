@@ -13,6 +13,7 @@ gem 'wash_out'
 gem 'american_date'
 gem "hex_string", "~> 1.0.0"
 gem 'geohex'
+gem 'bootstrap-will_paginate'
 
 group :assets do
   gem 'sass-rails',   '~> 3.2.3'

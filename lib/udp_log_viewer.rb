@@ -11,4 +11,13 @@ class UDPLogViewer
       []
     end
   end
+
+  def self.show_received_messages(count=50)
+    begin
+      Message.order("created_at DESC").limit(count)
+    rescue => e
+      []
+    end
+  end
+
 end

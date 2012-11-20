@@ -23,8 +23,8 @@ Calamp::Application.routes.draw do
     resources :devices
     get "activate_user" => "devices#activate_user", :as => "activate_user"
   end
+  resources :logs, :only => [:index, :show]
 
-  get "/logs", :to => "logs#index", :as => "logs"
 	get "/logout", :to => "sessions#destroy", :as => "logout"
   root :to => "sessions#new"
 end
