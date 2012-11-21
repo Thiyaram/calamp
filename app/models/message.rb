@@ -75,7 +75,7 @@ class Message < ActiveRecord::Base
     decoded_msg << '00' # acknowledgement success
     decoded_msg << '00' #spare byte
     decoded_msg << '00 00 00' #App version
-    (service_type =='01' and message_type == '02') ? decoded_msg.join(' ').to_byte_string : 'success'
+    (service_type.hex == 1 and [2, 5, 10].include?(message_type.hex)) ? decoded_msg.join(' ').to_byte_string : 'success'
   end
 
   def received_data
@@ -148,6 +148,8 @@ class Message < ActiveRecord::Base
         message_content = event_report_message(msg)
       when 5
         message_content = application_message(msg)
+      when 10
+        message_content = mini_event_report_message(msg)
     end
 
     {:options_header => decoded_msg,
@@ -205,6 +207,43 @@ class Message < ActiveRecord::Base
                 'trip_identity_counter', 'engine_temperature', 'coolant_hot_indicator_status',
                 'fuel_level', 'fuel_level_remaining', 'trip_fuel_consumption',
                 'oil_pressure_indicator_status', 'seat_belt_indicator_status',
+                'battery_voltage', 'idle_time', 'mil_status']
+    acc_list.each do |c|
+      accumulator[c.to_sym] = msg.shift(4).join("").hex
+    end
+    message_content[:accumulator_data] = accumulator
+    message_content
+  end
+
+  def mini_event_report_message(msg)
+    message_content = {}
+    update_time  = msg.shift(4).join("").hex
+    update_time  = Time.at(update_time).utc #in_time_zone('Pacific Time (US & Canada)')
+    message_content[:update_time] = update_time.to_s
+
+    latitude  = msg.shift(4).join("")
+    message_content[:latitude] = get_coordinate_from_hex(latitude)
+
+    longitude = msg.shift(4).join("")
+    message_content[:longitude] = get_coordinate_from_hex(longitude)
+
+    message_content[:heading]     = msg.shift(2).join("").hex  #cm / sec
+    message_content[:speed]       = msg.shift(1).join("").hex  #km / hr
+
+    fix_status                    = msg.shift(1).join("").hex.to_s(2).rjust(8,'0')
+    message_content[:fix_status]  = fix_status
+    message_content[:satellites]  = fix_status[-3,3].to_i(2)
+
+    message_content[:unit_status] = msg.shift(1).join("").hex.to_s(2).rjust(8,'0')
+    message_content[:inputs]      = msg.shift(1).join("").hex.to_s(2).rjust(8,'0')
+    message_content[:event_code]  = msg.shift(1).join("").hex
+    message_content[:accums]      = msg.shift(1).join("").hex
+    total_accumulators            = message_content[:accums].to_i
+    accumulator =  {}
+    acc_list = ['script_version', 'odometer', 'calculated_odometer', 'engine_hours',
+                'trip_identity_counter', 'engine_temperature', 'coolant_hot_indicator_status',
+                'fuel_level', 'fuel_level_remaining', 'trip_fuel_consumption',
+                'oil_pressure_indicator_status', 'seat_belt_indicator_status',
                 'battery_voltage', 'idle_time', 'mil_status', 'speed']
     acc_list.each do |c|
       accumulator[c.to_sym] = msg.shift(4).join("").hex
@@ -212,6 +251,7 @@ class Message < ActiveRecord::Base
     message_content[:accumulator_data] = accumulator
     message_content
   end
+
 
   def application_message(msg)
     message_content = {}
