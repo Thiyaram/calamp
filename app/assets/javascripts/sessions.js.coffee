@@ -1,6 +1,8 @@
 $ ->
   $("#errmsg").hide()
 
+	
+	
 	$("#login_btn").click ->
 	  a = undefined
 	  password = undefined

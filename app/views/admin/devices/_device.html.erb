@@ -1,0 +1,19 @@
+
+<%= render "layouts/client_validations" %>
+
+<%= simple_form_for [:admin, @device], :html => { :class => 'form-horizontal' } do |f| %>
+  <%= f.input    :imei , :input_html => {:maxlength => 15, :class => 'imei_length'}%>
+  <%= f.input    :registered_date, :as => :date_picker %>
+	<div class="control-group string required">
+		<label class="string required control-label" for="device_active">Status </label>
+		<div class="controls">
+    	<%= select_tag :status, options_for_select([@device.status == true ? 'Active' : 'Inactive']), :disabled => true %>
+		</div>
+	</div>
+  <div class="form-actions">
+    <%= f.button :submit, :class => 'btn-primary', :id => 'create_device' %>
+    <%= link_to t('.cancel', :default => t("helpers.links.cancel")),
+                admin_devices_path, :class => 'btn' %>
+  </div>
+<% end %>
+

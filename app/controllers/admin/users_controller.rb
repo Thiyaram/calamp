@@ -1,7 +1,8 @@
 class Admin::UsersController < ApplicationController
+ #filters
+ skip_before_filter :verify_authenticity_token, :only => [:destroy]
 
   def index
-    #@users = User.all
     @users = User.users_list_for(current_user)
   end
 
@@ -12,7 +13,7 @@ class Admin::UsersController < ApplicationController
   def create
     @user                 = User.new(params[:user])
     @user.current_user_id = current_user.id
-    @user.role_id         =  params[:role_id]  if current_user.role.name == User::SUPER_ADMIN_ROLE
+    @user.role_id         = params[:role_id]  if current_user.role.name == User::SUPER_ADMIN_ROLE
     if @user.save
       redirect_to admin_users_url, notice: 'User was successfully created.'
     else

@@ -1,89 +1,63 @@
-
 class Admin::DevicesController < ApplicationController
-  #before_filter :session_expiration
-  # GET /devices
-  # GET /devices.json
-  def index
-    #raise Device.first.status.inspect
-    @devices = Device.all
-    respond_to do |format|
-      format.html # index.html.erb
-      format.json { render json: @devices }
-    end
-  end
 
-  # GET /devices/1
-  # GET /devices/1.json
+  skip_before_filter :verify_authenticity_token, :only => [:destroy]
+  before_filter :check_role, :except => :index
+
+  def index
+    @devices = currentuser::Device.all
+  end
+ 
   def show
     @device = Device.find(params[:id])
-
-    respond_to do |format|
-      format.html # show.html.erb
-      format.json { render json: @device }
+    @device = @device.change_status
+    if @device.status == true
+      redirect_to admin_devices_url,  :notice => 'Device activated successfully.'
+    else
+      redirect_to admin_devices_url,  :notice => 'Device deactivated successfully.'
     end
   end
 
-  # GET /devices/new
-  # GET /devices/new.json
   def new
     @device = Device.new
-
-    respond_to do |format|
-      format.html # new.html.erb
-      format.json { render json: @device }
-    end
   end
-
-  # GET /devices/1/edit
+  
   def edit
     @device = Device.find(params[:id])
   end
 
-  # POST /devices
-  # POST /devices.json
   def create
     @device = Device.new(params[:device])
-
-    respond_to do |format|
-      if @device.save
-        format.html { redirect_to admin_devices_url, notice: 'Device was successfully created.' }
-        format.json { render json: @device, status: :created, location: @device }
-      else
-        format.html { render "new" }
-        format.json { render json: @device.errors, status: :unprocessable_entity }
-      end
+    if @device.save
+      redirect_to admin_devices_url, notice: 'Device was successfully created.'
+    else
+      render "new" 
     end
   end
 
-  # PUT /devices/1
-  # PUT /devices/1.json
   def update
     @device = Device.find(params[:id])
-
-    respond_to do |format|
-      if @device.update_attributes(params[:device])
-        format.html { redirect_to admin_device_path(@device), only_path:true,  notice: 'Device was successfully updated.'  }
-        format.json { head :no_content }
-      else
-        format.html { render "edit" }
-        format.json { render json: @device.errors, status: :unprocessable_entity }
-      end
+    if @device.update_attributes(params[:device])
+       redirect_to admin_devices_path, only_path:true,  notice: 'Device was successfully updated.' 
+    else
+     render "edit" 
     end
   end
 
-  # DELETE /devices/1
-  # DELETE /devices/1.json
   def destroy
     @device = Device.find(params[:id])
     @device.destroy
+    redirect_to admin_devices_url, :notice => 'Device removed successfully'       
+  end
 
-    respond_to do |format|
-      format.html { redirect_to admin_devices_url }
-      format.json { head :no_content }
+  def check_role
+    if current_user.role.name == 'user'
+      redirect_to admin_devices_path, :alert => 'You cannot have this access permission!!!' 
     end
   end
 
-  def activate_device(user)
-      raise
-  end
+	def currentuser	
+ 		Superadmin if  current_user.role.name == 'superadmin'
+ 		Admin 		 if  current_user.role.name == 'admin'
+ 		Normaluser if  current_user.role.name == 'user'
+	end
 end

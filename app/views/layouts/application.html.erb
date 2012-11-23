@@ -6,8 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= content_for?(:title) ? yield(:title) : "Calamp ListenerCa" %></title>
     <%= stylesheet_link_tag "application", :media => "all" %>
-
-
   </head>
   <body>
     <div class="navbar navbar-fixed-top navbar-inverse">
@@ -29,7 +27,7 @@
 								<a href="#" class="dropdown-toggle" data-toggle="dropdown">Devices
 								<b class="caret"></b></a>
 					     	<ul class="dropdown-menu ">
-										<li class="pr"><%= link_to "Add", "#" %></li>
+										<li class="pr"><%= link_to "Add", new_admin_device_path %></li>
 							     	<li class="pr"><%= link_to "List", admin_devices_path  %></li>
 								</ul>
 

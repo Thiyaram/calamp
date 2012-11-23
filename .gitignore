@@ -17,4 +17,6 @@ pickle-email-*.html
 config/database.yml
 config/udp.yml
 config/daemons.yml
+config/email.yml
+config/appconfig.yml
 

@@ -5,12 +5,11 @@
 
 <div class="header">
   <h2 style="float:left">Users</h2>
-	<span class="add-btn"><%= link_to "+ Add new user", new_admin_user_path,
-            :class => 'btn btn-primary' %></span>
+	<span class="add-btn"><%= link_to t(".new", :default => t("helpers.links.+ Add new user")),
+                                      new_admin_user_path, :class => 'btn btn-primary' %></span>
 </div>
 <hr>
 <%= render "layouts/messages" %>
-<!--<span class="alerts"><%= flash[:alert] %><%=flash[:notice]%></span><br> -->
 <table class="table table-striped table-bordered dTableR dataTable" id="users-datatable", name="users">
   <thead>
     <tr>
@@ -35,12 +34,13 @@
     <td style="width:180px">
 				<%= link_to admin_user_path(user, :active => user.active==(false) ? true : false)  do %>
 				<span class = "btn btn-mini btn-info" style="width:53px">
-					<%= "Activete" if user.active == false %>
-					<%= "Deactivete" if user.active == true %><%end%>
-				</span>
+					<%= "Activate" if user.active == false %>
+					<%= "Deactivate" if user.active == true %>
+				</span><%end%>
     		<b style="float:right;margin-right:49px"><%= link_to 'Edit', edit_admin_user_path(user), :class=>"btn btn-mini" %>
-    		<span class="btn-danger btn btn-mini" ><%= link_to "X", {:controller => "users", :action => 'destroy', :id => user.id},
-					method: :delete, data: { confirm: 'Are you sure?' } %></b>
+    		<span class="btn-danger btn btn-mini" >
+          <%= link_to "X", {:controller => "users", :action => 'destroy', :id => user.id},
+					                   method: :delete, data: { confirm: 'Are you sure?' } %></b>
 				</span>
 		</td>
   </tr>

@@ -1,0 +1,1 @@
+$("#device_registered_date").Zebra_DatePicker()

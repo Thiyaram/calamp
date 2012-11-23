@@ -22,7 +22,7 @@
     </div>
 
     <div class="signin-bar clearfix">
-      <% if flash[:alert] == 'You are Blocked!.Email sent to your email Address' %>
+      <% if flash[:alert]=='Your account is blocked!.You will receive activation email if your account is active.' %>
       <button class="btn btn-inverse " type="submit" disabled="disabled">Sign In</button>
       <% else %>
       <button class="btn btn-inverse " id="login_btn" type="submit">Sign In</button>

@@ -59,6 +59,7 @@ GEM
     akami (1.1.0)
       gyoku (>= 0.4.0)
       nokogiri (>= 1.5.2)
+    american_date (1.0.0)
     arel (3.0.2)
     awesome_print (1.1.0)
     bacon (1.1.0)
@@ -312,6 +313,7 @@ PLATFORMS
 
 DEPENDENCIES
   airbrake
+  american_date
   annotate!
   bcrypt-ruby (~> 3.0.0)
   brakeman

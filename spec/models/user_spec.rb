@@ -27,20 +27,22 @@ describe User do
 	let(:user_role) {Role.find_or_create_by_name("user")}
 	
  def create_user
-	@user ||= User.new(:name => 'stevemartin', :email => 'thiyaram@example.com', 
+	@user ||= User.new(:name => 'user', :email => 'user@example.com', 
 				:password => 'password', :password_confirmation => 'password')
 	@user.role_id = user_role.id
-	@user.current_user_id = 
+	@user.current_user_id = @user.id
 	@user.save 		
 
 	@superadmin ||= User.new(:name => 'superadmin', :email => 'superadmin@example.com', 
 				:password => 'password', :password_confirmation => 'password')
 	@superadmin.role_id = super_admin.id
+	@superadmin.current_user_id = @superadmin.id
 	@superadmin.save 		
 
 	@admin ||= User.new(:name => 'admin', :email => 'admin@example.com', 
 				:password => 'password', :password_confirmation => 'password')
 	@admin.role_id = admin_role.id
+	@admin.current_user_id = @admin.id
 	@admin.save 		
  end	
 
@@ -75,9 +77,9 @@ context "Instance methods" do
 
 	it "should allow only superadmin to change user role" do
 		@user.current_user_id = @superadmin.id
-    	@user.role_id 		  = admin_role.id
-    	@user.save.should be_true
-    end
+  	@user.role_id 		  = admin_role.id
+  	@user.save.should be_true
+  end
 
 	it "should  not allow other users except superadmin to change user role" do
 		@user.current_user_id = [@admin.id, @user.id].sample
@@ -162,37 +164,76 @@ end
 
 	 
   context "class methods" do
-  	before(:each) do
-      	@user = FactoryGirl.create(:user)
-      end
 
   	describe ".authenticate" do
+			it "should be true if user is exist and active is true" do
+  			@user.active = true
+  			@user.save
+  			@user = User.authenticate(@user.email, @user.password)
+ 				@user.should be_true
+  		end
 
-  		it "should return invalid login message if user does not exist" do
+  		it "should return enter valid email if email is invalid" do
   			@user.email = nil
-  			@user = User.find_by_email(@user.email)
-        @user.should be_nil
+  			@user.save
+  			@user = User.authenticate(@user.email, @user.password)
+        @user.should eq('Enter valid email to continue ...')
+  		end
+
+  		it "should return enter valid email if email is invalid" do
+  			@user.email = 'test'
+  			@user.save
+  			@user = User.authenticate(@user.email, @user.password)
+        @user.should eq('Enter valid email to continue ...')
   		end	
 
-  		it "should redirect to devices page if user is exist and active is true" do
-  			@user = User.find_by_email(@user.email)
-  			@user.authenticate(@user.password)
- 				@user.should be_true
+  	  it "should return invalid login if user exist and active is false" do
+				@user.password = 'password'
+				@user.password_confirmation = 'password'
+				@user.active = false
+				@user.save
+				@user = User.authenticate(@user.email, @user.password)
+				@user.should eq('Invalid login !!!')
+  	  end
+
+  	  it "should return Your account is blocked!.You will receive activation email if your account is active" do
+  	  	@user.active = true
+  	  	@user.invalid_attempts = 10
+  	  	@user.save
+  			@user = User.authenticate(@user.email, 'pass')
+  			@user.should eq('Your account is blocked!.You will receive activation email if your account is active.')
   		end
   	end
 
-  	describe ".send_password_reset_mail_and_entry_to_auditlog(email,ipaddress=nil)" do
-
+  	describe ".send_password_reset_mail_and_entry_to_auditlog" do
   		it "should return You will receive password reset mail if your email exist in our database and your account is active." do
   			@user.active = true
   			@user.save!
   			@user = User.send_password_reset_mail_and_entry_to_auditlog(@user.email,'127.0.0.1')
-  			@user.should eq('You will receive password reset mail if your email exist in our database and your account is active.')
+  			@user.should be_true
   		end	
-  	end
 
-  	describe ".find_user_by_password_reset_token(token,password)" do
+  		it "should return You will receive password reset mail if your email does not exist in our database" do
+  			@user = User.send_password_reset_mail_and_entry_to_auditlog('test@gmail.com','127.0.0.1')
+  			@user.should eq('You will receive password reset mail if your email exist in our database and your account is active.')
+   		end	
 
+  		it "should return invalid email if email is not present" do
+  			@user.active = true
+  			@user.save!
+  			@user = User.send_password_reset_mail_and_entry_to_auditlog('','127.0.0.1')
+  			@user.should eq('Enter valid email to continue ...')
+  		end
+
+  		it "should return invalid email if email is not valid" do
+  			@user.active = true
+  			@user.save!
+  			@user = User.send_password_reset_mail_and_entry_to_auditlog('test','127.0.0.1')
+  			@user.should eq('Enter valid email to continue ...')
+  		end
+   	end
+
+  	describe ".find_user_by_password_reset_token" do
   		it "should show reset password link is expired when password_reset_sent_at less than 20 minutes" do
   			@user.password_reset_token = SecureRandom.urlsafe_base64
   			@user.password_reset_sent_at = 20.minutes.ago
@@ -212,13 +253,9 @@ end
 	end
 
 
-  context "instance methods" do
-  	before(:each) do
-      	@user = FactoryGirl.create(:user)
-      end
+  context "Instance methods" do
 
     describe "#password_reset_token_present?" do
-
       it "should return true when password_digest present" do
       	@user.password_digest.should be_true
       end
@@ -230,7 +267,6 @@ end
 		end
 
 		describe "#deactivate_account" do
-
 			it "return invalid login for user who is deactivated" do
 				@user.deactivate_account
 				@user.active.should be_false
@@ -238,20 +274,17 @@ end
 		end
 
 		describe "#send_password_reset_mail" do
-
 			it "should set activation key for the user who is blocked" do
 				@user.send_password_reset_mail
 				@user.password_reset_token.should be_true
 			end	
-
 		end
 
 		describe "#inform_user_if_account_is_blocked" do
-		
 			it "should made entry to auditlog table when user's account is blocked" do
 				@user.activation_key = SecureRandom.urlsafe_base64
 				@user.active = false
-				@user.inform_user_if_account_is_blocked
+				@user.save
 				Auditlog.all.count.should eq(1)
 			end
 
@@ -261,11 +294,9 @@ end
  				@user.inform_user_if_account_is_blocked
  				Auditlog.all.count.should eq(0)
 			end
-
 		end	
 
 		describe "#entry_to_auditlog_table" do
-
 			it "should made entry to auditlog table" do
 				user = User.new
 				user.password_reset_token = SecureRandom.urlsafe_base64
@@ -275,7 +306,6 @@ end
 		end
 
 		describe "#clear_password_reset_token" do
-
 			it "should return nil for password_reset_token" do
 				@user.password_reset_token = SecureRandom.urlsafe_base64
 				@user.password_reset_sent_at = Time.now
@@ -284,17 +314,25 @@ end
 			end
 		end
 
-		describe "#update_user(user)" do
+		describe "#update_user" do
 			it "should return 1 when password_reset_sent_at is 20 minutes ago" do
 				@user.password_reset_token = SecureRandom.urlsafe_base64
 				@user.password_reset_sent_at = 20.minutes.ago
+				@user.save
 				@user.update_user(@user)
 				@user.password_reset_sent_at.should eq(@user.password_reset_sent_at)
+			end
+
+			it "should clear password reset tokene if password reset sent at greater than 20 minutes ago" do
+				@user.password_reset_token = SecureRandom.urlsafe_base64
+				@user.password_reset_sent_at = 15.minutes.ago
+				@user.save
+				@user.update_user(@user)
+				@user.password_reset_sent_at.should be_nil
 			end
 		end
 
 		describe "#update_user_activation_key" do
-
 			it "should return activation key nil" do
 				@user.activation_key = SecureRandom.urlsafe_base64
 				@user.invalid_attempts = 10
@@ -303,10 +341,29 @@ end
 				@user.activation_key.should eq("")
 			end
 		end
+
+		describe "#password_present?" do
+			it "should retur true when password is present" do
+				@user.password = nil
+				@user.password_present?
+				@user.password.should be_false
+			end
+			it "should return false when password is not present" do
+				@user.password_present?
+				@user.password.should be_true
+			end
+		end
+
+		describe "#email_not_present?" do
+			it "should retur true when email not present" do
+				@user.email = nil
+				@user.email_not_present?
+				@user.email.should be_nil
+			end
+			it "should return false when email is present" do
+				@user.email_not_present?
+				@user.email.should be_true
+			end
+		end
 	end
 end
-
-
-	
-
-

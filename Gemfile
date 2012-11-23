@@ -5,6 +5,7 @@ gem 'pg'
 gem 'jquery-rails'
 gem 'bcrypt-ruby', '~> 3.0.0'
 gem 'simple_form'
+gem 'american_date'
 
 group :assets do
   gem 'sass-rails',   '~> 3.2.3'

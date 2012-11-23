@@ -21,7 +21,6 @@ Calamp::Application.routes.draw do
   namespace :admin, defaults: {format: 'html'} do
     resources :users
     resources :devices
-    get "activate_user" => "devices#activate_user", :as => "activate_user"
   end
 
   get "/logs", :to => "logs#index", :as => "logs"

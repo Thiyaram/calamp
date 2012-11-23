@@ -24,145 +24,287 @@ describe Admin::DevicesController do
   # Device. As you add validations to Device, be sure to
   # update the return value of this method accordingly.
   before(:all) do
-		@admin = FactoryGirl.create(:user, :email => Faker::Internet.email)
-  end
-
-  def valid_attributes
-    device = FactoryGirl.attributes_for(:device)
-  end
-
-  # This should return the minimal set of values that should be in the session
-  # in order to pass any filters (e.g. authentication) defined in
-  # DevicesController. Be sure to keep this updated too.
-  def valid_session
-    { :user_id => @admin.id}
-  end
-
-  describe "GET index" do
-    it "assigns all devices as @devices" do
-      device = Device.create! valid_attributes
-      get :index, {}, valid_session
-      assigns(:devices).should eq([device])
+		Role.destroy_all
+    User.destroy_all
+    ['superadmin', 'admin', 'user'].each do |x|
+      role = Role.find_or_create_by_name(x)
+      user = User.new(:name => "#{x}", :email => "#{x}@example.com", :password => 'password', :password_confirmation => 'password')
+      user.role_id = role.id
+      user.save
+      user.active = true
+      user.save
     end
   end
 
-  describe "GET show" do
-    it "assigns the requested device as @device" do
-      device = Device.create! valid_attributes
-      get :show, {:id => device.to_param}, valid_session
-      assigns(:device).should eq(device)
-    end
-  end
+  let(:superadmin){ @superadmin = User.find_by_email('superadmin@example.com') }
+  let(:admin)     { @admin = User.find_by_email('admin@example.com') }
+  let(:user)      { @user = User.find_by_email('user@example.com') }
 
-  describe "GET new" do
-    it "assigns a new device as @device" do
-      get :new, {}, valid_session
-      assigns(:device).should be_a_new(Device)
-    end
-  end
-
-  describe "GET edit" do
-    it "assigns the requested device as @device" do
-      device = Device.create! valid_attributes
-      get :edit, {:id => device.to_param}, valid_session
-      assigns(:device).should eq(device)
-    end
-  end
-
-  describe "POST create" do
-    describe "with valid params" do
-      it "creates a new Device" do
-        expect {
-          post :create, {:device => valid_attributes}, valid_session
-        }.to change(Device, :count).by(1)
-      end
-
-      it "assigns a newly created device as @device" do
-        post :create, {:device => valid_attributes}, valid_session
-        assigns(:device).should be_a(Device)
-        assigns(:device).should be_persisted
-      end
-
-      it "redirects to the created device" do
-        post :create, {:device => valid_attributes}, valid_session
-        response.should redirect_to(admin_devices_path)
+  shared_examples_for "devices" do
+    describe "GET index" do
+      it "assigns all devices as @devices" do
+        device = Device.new(:imei =>'123456789012345', :registered_date => '12-12-2012')
+        device.status = false
+        device.save
+        get :index, {}, valid_session
+        assigns(:devices).count.should eq(1)
       end
     end
 
-    describe "with invalid params" do
-      it "assigns a newly created but unsaved device as @device" do
-        # Trigger the behavior that occurs when invalid params are submitted
-        Device.any_instance.stub(:save).and_return(false)
-        post :create, {:device => {}}, valid_session
-        assigns(:device).should be_a_new(Device)
-      end
-
-      it "re-renders the 'new' template" do
-        # Trigger the behavior that occurs when invalid params are submitted
-        Device.any_instance.stub(:save).and_return(false)
-        post :create, {:device => {}}, valid_session
-        response.should render_template("new")
-      end
-    end
-  end
-
-  describe "PUT update" do
-    describe "with valid params" do
-      it "updates the requested device" do
-        device = Device.create! valid_attributes
-        # Assuming there are no other devices in the database, this
-        # specifies that the Device created on the previous line
-        # receives the :update_attributes message with whatever params are
-        # submitted in the request.
-        Device.any_instance.should_receive(:update_attributes).with({'these' => 'params'})
-        put :update, {:id => device.to_param, :device => {'these' => 'params'}}, valid_session
-      end
-
+    describe "GET show" do
       it "assigns the requested device as @device" do
-        device = Device.create! valid_attributes
-        put :update, {:id => device.to_param, :device => valid_attributes}, valid_session
-        assigns(:device).should eq(device)
+        device = Device.new(:imei =>'123456789012345', :registered_date => '12-12-2012')
+        device.status = false
+        device.save
+        get :show, {:id => device.to_param}, valid_session
+        assigns(:device).should eq(device) 
+        flash[:notice].should eq('Device activated successfully.')
+        device.status = true
+        device.save
+        get :show, {:id => device.to_param}, valid_session
+        assigns(:device).should eq(device) 
+        flash[:notice].should eq('Device deactivated successfully.') 
       end
+   end
 
-      it "redirects to the device" do
-        device = Device.create! valid_attributes
-        put :update, {:id => device.to_param, :device => valid_attributes}, valid_session
-        response.should redirect_to(admin_device_path(device))
+    describe "GET new" do
+      it "assigns a new device as @device" do
+        device = Device.new(:imei =>'123456789012345', :registered_date => '12-12-2012')
+        device.status = false
+        device.save
+        get :new, {}, valid_session
+        assigns(:device).should be_a_new(Device) 
+      end
+    end
+
+    describe "GET edit" do
+      it "assigns the requested device as @device" do
+        device = Device.new(:imei =>'123456789012345', :registered_date => '12-12-2012')
+        device.status = false
+        device.save
+        get :edit, {:id => device.to_param}, valid_session
+        assigns(:device).should eq(device) 
       end
     end
 
-    describe "with invalid params" do
-      it "assigns the device as @device" do
-        device = Device.create! valid_attributes
-        # Trigger the behavior that occurs when invalid params are submitted
-        Device.any_instance.stub(:save).and_return(false)
-        put :update, {:id => device.to_param, :device => {}}, valid_session
-        assigns(:device).should eq(device)
+    describe "POST create" do
+      describe "with valid params" do
+        it "creates a new Device" do
+          expect {
+            post :create, {:device => valid_attributes}, valid_session
+          }.to change(Device, :count).by(1) 
+        end
+
+        it "assigns a newly created device as @device" do
+          post :create, {:device => valid_attributes}, valid_session
+          assigns(:device).should be_a(Device) 
+          assigns(:device).should be_persisted 
+        end
+
+        it "redirects to the created device" do
+          post :create, {:device => valid_attributes}, valid_session
+          response.should redirect_to(admin_devices_path) 
+          flash[:notice].should eq('Device was successfully created.')
+        end
       end
 
-      it "re-renders the 'edit' template" do
-        device = Device.create! valid_attributes
-        # Trigger the behavior that occurs when invalid params are submitted
-        Device.any_instance.stub(:save).and_return(false)
-        put :update, {:id => device.to_param, :device => {}}, valid_session
-        response.should render_template("edit")
+      describe "with invalid params" do
+        it "assigns a newly created but unsaved device as @device" do
+          # Trigger the behavior that occurs when invalid params are submitted
+          Device.any_instance.stub(:save).and_return(false)
+          post :create, {:device => {}}, valid_session
+          assigns(:device).should be_a_new(Device) 
+        end
+
+        it "re-renders the 'new' template" do
+          # Trigger the behavior that occurs when invalid params are submitted
+          Device.any_instance.stub(:save).and_return(false)
+          post :create, {:device => {}}, valid_session
+          response.should render_template("new") 
+        end
       end
     end
-  end
 
-  describe "DELETE destroy" do
-    it "destroys the requested device" do
-      device = Device.create! valid_attributes
-      expect {
+    describe "PUT update" do
+      describe "with valid params" do
+        it "updates the requested device" do
+          device = Device.new(:imei =>'123456789012345', :registered_date => '12-12-2012')
+          device.status = false
+          device.save
+          Device.any_instance.should_receive(:update_attributes).with({"imei" => '123456789012356', "registered_date" => '12-12-2012'})
+          put :update, {:id => device.to_param, :device => {:imei => '123456789012356', :registered_date => '12-12-2012'}}, valid_session
+        end
+
+        it "assigns the requested device as @device" do
+          device = Device.new(:imei =>'123456789012345', :registered_date => '12-12-2012')
+          device.status = false
+          device.save
+          put :update, {:id => device.to_param, :device => valid_attributes}, valid_session
+          assigns(:device).should eq(device) 
+        end
+
+        it "redirects to the device" do
+          device = Device.new(:imei =>'123456789012345', :registered_date => '12-12-2012')
+          device.status = false
+          device.save
+          put :update, {:id => device.to_param, :device => valid_attributes}, valid_session
+          response.should redirect_to(admin_devices_path) 
+          flash[:notice].should eq('Device was successfully updated.') 
+        end
+      end
+
+      describe "with invalid params" do
+        it "assigns the device as @device" do
+          device = Device.new(:imei =>'123456789012345', :registered_date => '12-12-2012')
+          device.status = false
+          device.save
+          # Trigger the behavior that occurs when invalid params are submitted
+          Device.any_instance.stub(:save).and_return(false)
+          put :update, {:id => device.to_param, :device => {}}, valid_session
+          assigns(:device).should eq(device) 
+        end
+
+        it "re-renders the 'edit' template" do
+          device = Device.new(:imei =>'123456789012345', :registered_date => '12-12-2012')
+          device.status = false
+          device.save
+          # Trigger the behavior that occurs when invalid params are submitted
+          Device.any_instance.stub(:save).and_return(false)
+          put :update, {:id => device.to_param, :device => {}}, valid_session
+          response.should render_template("edit") 
+        end
+      end
+    end
+
+    describe "DELETE destroy" do
+      it "destroys the requested device" do
+        device = Device.new(:imei =>'123456789012345', :registered_date => '12-12-2012')
+        device.status = false
+        device.save
+        expect {
+          delete :destroy, {:id => device.to_param}, valid_session
+        }.to change(Device, :count).by(-1) 
+      end
+
+      it "redirects to the devices list" do
+        device = Device.new(:imei =>'123456789012345', :registered_date => '12-12-2012')
+        device.status = false
+        device.save
         delete :destroy, {:id => device.to_param}, valid_session
-      }.to change(Device, :count).by(-1)
-    end
-
-    it "redirects to the devices list" do
-      device = Device.create! valid_attributes
-      delete :destroy, {:id => device.to_param}, valid_session
-      response.should redirect_to(admin_devices_url)
+        response.should redirect_to(admin_devices_url) 
+      end
     end
   end
 
+  
+  context "Super Admin Role" do
+    def valid_attributes
+      { :imei => '123456789012345', :registered_date => '12-12-2012' }
+    end
+
+    def valid_session
+      { :user_id => superadmin.id}
+    end
+
+    include_examples "devices"
+  end
+
+  context "Admin Role" do
+
+    def valid_attributes 
+      { :imei => '123456789012345', :registered_date => '12-12-2012' }
+    end
+
+    def valid_session 
+      { :user_id => admin.id }
+    end
+
+    include_examples "devices"
+  end
+
+  shared_examples_for "devicesforuser" do 
+
+    describe "GET index" do
+    
+      it "should return all devices for user" do 
+        device = Device.new(:imei => '123456789012345', :registered_date =>'12-12-2012')
+        device.status = false
+        device.save
+        get :index, {}, valid_session
+        assigns(:devices).count.should eq(0)
+      end
+    end
+
+    describe "GET show" do
+      it "should not show particular device to the user" do
+        device = Device.new(:imei => '123456789012345', :registered_date =>'12-12-2012')
+        device.status = false
+        device.save
+        get :show, {:id => device.to_param}, valid_session
+        response.should redirect_to(admin_devices_path)
+        flash[:alert].should eq('You cannot have this access permission!!!')
+      end
+    end
+
+    describe "GET edit" do
+      it "should not edit particular device to the user" do
+        device = Device.new(:imei => '123456789012345', :registered_date =>'12-12-2012')
+        device.status = false
+        device.save
+        get :edit, {:id => device.to_param}, valid_session
+        response.should redirect_to(admin_devices_path)
+        flash[:alert].should eq('You cannot have this access permission!!!')
+      end
+    end
+
+    describe "GET new" do
+      it "should not create new device" do
+        get :new, {}, valid_session
+        response.should redirect_to(admin_devices_path)
+        flash[:alert].should eq('You cannot have this access permission!!!')
+      end
+    end
+
+    describe "POST create" do
+      it "should not create new device" do
+        post :create, {}, valid_session
+        response.should redirect_to(admin_devices_path)
+        flash[:alert].should eq('You cannot have this access permission!!!')
+      end
+    end
+
+    describe "PUT update" do
+      it "should not update particular device" do
+        device = Device.new(:imei => '123456789012345', :registered_date =>'12-12-2012')
+        device.status = false
+        device.save
+        put :update, {:id => device.to_param}, valid_session
+        response.should redirect_to(admin_devices_path)
+        flash[:alert].should eq('You cannot have this access permission!!!')
+      end
+    end
+
+    describe "DELETE destroy" do
+      it "should not delete device" do
+        device = Device.new(:imei => '123456789012345', :registered_date =>'12-12-2012')
+        device.status = false
+        device.save
+        delete :destroy, {:id => device.to_param}, valid_session
+        response.should redirect_to(admin_devices_path)
+        flash[:alert].should eq('You cannot have this access permission!!!')
+      end
+    end
+  end
+
+  context "User Role" do
+    def valid_attributes 
+      { :imei => '123456789012345', :registered_date => '12-12-2012' }
+    end
+
+    def valid_session
+      { :user_id => user.id }
+    end
+
+    include_examples "devicesforuser"
+  end
 end

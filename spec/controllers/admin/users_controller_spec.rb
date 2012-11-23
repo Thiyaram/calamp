@@ -20,83 +20,25 @@ describe Admin::UsersController do
   let(:user) { @user ||=  User.find_by_email("user@example.com") }
 
 
-
-  context "Superadmin Role" do
-    def valid_attributes
-      {:name => Faker::Name.name, :email => Faker::Internet.email, :password => 'password',
-       :password_confirmation => 'password'}
+ shared_examples_for "users" do
+=begin
+    it "should expire session after 1 minute" do
+      get :index, {}, valid_session
+      assigns(:users).should_not include(current_user)
+      sleep 70
+      get :index, {}, valid_session
+      response.should redirect_to(root_path)
+      flash[:alert].should match 'Session Expired!!!. Login to continue...'
     end
 
-    def valid_session
-      {:user_id => superadmin.id}
+    it "should not expire session before 1 minute" do
+      get :index, {}, valid_session
+      assigns(:users).should_not include(current_user)
+      sleep(40.seconds)
+      get :index, {}, valid_session
+      response.should render_template('index')
     end
-
-    def current_user
-      superadmin
-    end
-
-    describe "GET index" do
-      it "should list all users and admins except superadmin" do
-        20.times do
-          user = User.create! valid_attributes
-        end
-        User.last.update_attribute(:role_id =. @admin.role_id)
-        get :index, {}, valid_session
-        assigns(:users).should_not include(current_user)
-        assigns(:users).size.should eql 20
-      end
-
-      it "should fetch all records without any limit" do
-        50.times do
-          user = User.create! valid_attributes
-        end
-        get :index, {}, valid_session
-        assigns(:users).should_not include(current_user)
-        assigns(:users).size.should eql 20
-      end
-    end
-
-     describe "POST create" do
-      describe "with valid params" do
-        it "creates a new User" do
-          expect {
-            post :create, {:user => valid_attributes}, valid_session
-          }.to change(User, :count).by(1)
-        end
-
-        it "assigns a newly created user as @user" do
-          post :create, {:user => valid_attributes}, valid_session
-          assigns(:user).should be_a(User)
-          assigns(:user).should be_persisted
-        end
-
-        it "redirects to the created user" do
-          post :create, {:user => valid_attributes}, valid_session
-          response.should redirect_to(admin_users_url)
-        end
-      end
-
-      describe "with invalid params" do
-        it "assigns a newly created but unsaved user as @user" do
-          # Trigger the behavior that occurs when invalid params are submitted
-          User.any_instance.stub(:save).and_return(false)
-          post :create, {:user => {}}, valid_session
-          assigns(:user).should be_a_new(User)
-        end
-
-        it "re-renders the 'new' template" do
-          # Trigger the behavior that occurs when invalid params are submitted
-          User.any_instance.stub(:save).and_return(false)
-          post :create, {:user => {}}, valid_session
-          response.should render_template("new")
-        end
-      end
-    end
-
-  end
-
-  shared_examples_for "user" do
-
+=end
     describe "GET index" do
       it "should list all users except currently logged in user" do
         user = User.create! valid_attributes
@@ -229,5 +171,42 @@ describe Admin::UsersController do
         response.should redirect_to(admin_users_url)
       end
     end
+  end
 
+
+  context "Superadmin Role" do
+    def valid_attributes
+      {:name => Faker::Name.name, :email => Faker::Internet.email, :password => 'password',
+       :password_confirmation => 'password'}
+    end
+
+    def valid_session
+      {:user_id => superadmin.id}
+    end
+
+    def current_user
+      superadmin
+    end
+
+    include_examples "users"
+
+  end 
+
+  context "Admin Role" do
+    def valid_attributes
+      {:name => Faker::Name.name, :email => Faker::Internet.email, :password => 'password',
+       :password_confirmation => 'password'}
+    end
+
+    def valid_session
+      {:user_id => admin.id}
+    end
+
+    def current_user
+      admin
+    end
+
+    include_examples "users"
+
+  end 
 end

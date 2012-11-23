@@ -1,9 +1,16 @@
+<% content_for :script do %>
+  <%= javascript_include_tag :devices %>
+<% end %>
+
+<%= render "layouts/client_validations" %>
+
 <%= simple_form_for [:admin, @device], :html => { :class => 'form-horizontal' } do |f| %>
-  <%= f.input :imei %>
+  <%= f.input :imei, :input_html => {:class => 'imei_length', :maxlength => 15} %>
   <%= f.input :registered_date, :as => :date_picker %>
   <div class="form-actions">
-    <%= f.button :submit, :class => 'btn-primary' %>
+    <%= f.button :submit, :class => 'btn-primary', :id => 'create_device' %>
     <%= link_to t('.cancel', :default => t("helpers.links.cancel")),
                 admin_devices_path, :class => 'btn' %>
   </div>
 <% end %>
+

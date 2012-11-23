@@ -1,6 +1,5 @@
 class SessionsController < ApplicationController
   #force_ssl
-  skip_before_filter :session_expiration, :except => [:destroy]
   skip_before_filter :check_session, :except => [:destroy]
 
   layout 'login'
@@ -8,12 +7,8 @@ class SessionsController < ApplicationController
   def new
   end
 
-  def destroy
-    session[:user_id] = nil
-    redirect_to login_url, :notice => "Successfully logged out"
-  end
-
   def create
+    $ip = get_ipaddress
     @user = User.authenticate(params[:email], params[:password])
     msg = @user
     unless @user.respond_to?(:name)
@@ -25,15 +20,14 @@ class SessionsController < ApplicationController
   end
 
   def edit
-    user = User.find_by_activation_key!(params[:id])
+    user = User.find_by_activation_key(params[:id])
     user.update_user_activation_key
     flash.now.notice = "Account activated successfully.Login to continue..."
-    render "new"
   end
 
   def destroy
     session[:user_id] = nil
     redirect_to login_url, :notice => "Successfully logged out"
   end
-end
 
+end

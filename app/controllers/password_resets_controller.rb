@@ -1,6 +1,7 @@
 class PasswordResetsController < ApplicationController
 #filters
 skip_before_filter:session_expiration
+skip_before_filter:check_session
 
 layout 'login'
 
@@ -9,6 +10,8 @@ layout 'login'
 
   def create
     ip = get_ipaddress
+    user = User.find_by_email(params[:email])  rescue nil
+    user.clear_password_reset_token if user.present?
     user = User.send_password_reset_mail_and_entry_to_auditlog(params[:email],ip)
     msg  = user
     if user.respond_to?(:name)
@@ -24,28 +27,33 @@ layout 'login'
   end
 
   def update
-    @user = User.find_by_password_reset_token(params[:id])    
-    new_password = params[:user][:new_password].strip
-    new_password_confirmation = params[:user][:new_password_confirmation].strip
-    unless new_password.present?
-      redirect_to "/password_resets/#{@user.password_reset_token}/edit", :alert => "Enter password to continue ..."  and return
-    end
-    unless new_password == new_password_confirmation
-        redirect_to "/password_resets/#{@user.password_reset_token}/edit", :alert => "password  does not match confirmation..." and return
-    end 
-    msg = @user.update_user(params[:user])
-    if msg == 1
-      redirect_to  "/", :alert => "Reset password link is expired."
-    elsif msg == 2
-      redirect_to new_password_reset_path, :notice => "Password has been reset."
-    else
-      redirect_to "/password_resets/#{user.password_reset_token}/edit", :alert => "Enter password ..."
+    @user = User.find_by_password_reset_token!(params[:id]) 
+    if @user.password_reset_sent_at < 20.minutes.ago
+      redirect_to root_url, :alert => 'Reset password link is expired.'
+    else 
+      if @user.update_attributes(params[:user])
+         @user.password = params[:user][:new_password]
+         @user.clear_password_reset_token
+         redirect_to new_password_reset_path, :notice => 'Password has been reset.'  
+      else
+        flash.now.alert = @user.errors.full_messages.to_sentence
+        render 'edit'
+      end  
     end
   end
-
 end
 
-
-
-
-
+=begin
+    if @user.password_reset_sent_at <= 20.minutes.ago
+      redirect_to root_url, :alert => 'Reset password link is expired.'
+    else
+      if @user.update_attributes(params[:user])
+        @user.password = params[:user][:new_password]
+        @user.clear_password_reset_token
+        redirect_to new_password_reset_path, :notice => 'Password has been reset.'  
+      else
+        flash.now.alert = @user.errors.full_messages.to_sentence
+        render 'edit'
+      end  
+    end
+=end

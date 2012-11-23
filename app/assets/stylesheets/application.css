@@ -11,6 +11,11 @@
  *= require_self
  *= require_tree .
 */
+
+.placeholder {
+  	color: #aaa;
+  }
+
 .navbar .nav > li > a{
 	color:white!important;
 	padding-top:15px!important;
@@ -51,4 +56,16 @@ abbr{
 
 a#passwordreset_btn{
   color:white !important
+}
+
+.imei_length{
+	width: 400px;
+}
+
+.Zebra_DatePicker{ 
+	margin-top: 100px !important;
+}
+
+.form-actions{
+	border-top: 1px !important;
 }

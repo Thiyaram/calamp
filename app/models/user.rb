@@ -25,10 +25,10 @@ class User < ActiveRecord::Base
 
   has_secure_password
 
-  attr_accessible :name, :email, :password, :password_confirmation, :role_id,
+  attr_accessible :name, :email, :password, :password_confirmation,
                   :new_password, :new_password_confirmation
 
-  attr_accessor   :attempts, :new_password, :new_password_confirmation, :current_user_id
+  attr_accessor   :attempts, :new_password, :new_password_confirmation, :current_user_id  
 
   #associations
   belongs_to :role
@@ -48,15 +48,19 @@ class User < ActiveRecord::Base
 
   validates :email,    :presence => true,
                        :length => {:maximum => 150, :allow_blank => true},
-											 :uniqueness => true,
                        :format => {:with => /^[-a-z0-9_+\.]+\@([-a-z0-9]+\.)+[a-z0-9]{2,4}$/i,
                                    :allow_blank => true }
 
   validates :password, :presence => {:on => :create}, :confirmation => true,
                        :length => {:in => 6..50, :if => :password_present?}
 
-  validates :role_id,  :presence => {:on => :create }
+  
   validate :validate_email
+  validates :new_password, :presence => true, :confirmation => true , :if => :password_reset_token_present?
+
+  def password_reset_token_present?
+    password_reset_token_was.present?
+  end
 
   def self.users_list_for(current_user)
     arel  = joins(:role).where('users.id NOT IN(?)', current_user.id)
@@ -66,16 +70,16 @@ class User < ActiveRecord::Base
       when SUPER_ADMIN_ROLE
         arel  = arel.where("roles.name in(?)", [USER_ROLE, ADMIN_ROLE])
       else
-        arel  = arel.where("id < 1")
+        arel  = arel.where("roles.id < 1")
       end
     arel.ordered("active, name").
          select("users.id as id, users.name, email, last_login, active, roles.name as role_name")
   end
 
   def self.authenticate(email, password)
-    email     = email.to_s.strip
-    password  =  password.to_s.strip
-    return 'Enter valid email to continue ...' unless email.match(/^[-a-z0-9_+\.]+\@([-a-z0-9]+\.)+[a-z0-9]{2,4}$/i)
+    email     = email.to_s.strip 
+    password  =  password.to_s.strip 
+    return 'Enter valid email to continue ...' unless email.match(/^[-a-z0-9_+\.]+\@([-a-z0-9]+\.)+[a-z0-9]{2,4}$/i) or email.nil? 
     return 'Enter password to continue ...' unless password.present?
 
     user = User.find_by_email(email.strip)
@@ -92,8 +96,40 @@ class User < ActiveRecord::Base
       msg
     else
       user.update_attribute(:invalid_attempts, 0)
+      user.update_attribute(:last_login, Time.now)
       user
     end
+  end
+
+  def self.send_password_reset_mail_and_entry_to_auditlog(email,ipaddress=nil)
+    email = email.strip
+    return 'Enter valid email to continue ...' unless email.match(/^[-a-z0-9_+\.]+\@([-a-z0-9]+\.)+[a-z0-9]{2,4}$/i) or email.nil?
+
+    user = User.find_by_email(email)
+    if user && user.active == true
+      user.send_password_reset_mail
+      user.entry_to_auditlog_table(ipaddress)
+      user
+     else
+      msg = "You will receive password reset mail if your email exist in our database and your account is active."
+      return msg
+    end
+  end
+
+  def self.find_user_by_password_reset_token(token,password)
+      user = User.find_by_password_reset_token!(token)
+      password = password.strip
+      return user unless password.present?
+
+      if user.password_reset_sent_at < 20.minutes.ago
+         msg = "Reset password link is expired."
+         return msg
+      else
+         user.update_attribute('password',password)
+         user.clear_password_reset_token
+         msg = "Password has been reset."
+         return msg
+      end
   end
 
   def deactivate_account
@@ -130,27 +166,41 @@ class User < ActiveRecord::Base
     end
     if self.active_changed?
       #UserMailer.confirm_email(self).deliver
+      #log.to_json
       s = self.active
       Auditlog.create(  :task_type=>"User Activation",
                               :task_description => "User '#{self.name}'<#{self.email}> account is Activated",
-                              :task_detail => log.to_json,:user_id => self.current_user_id)  if s==true
+                              :task_detail =>"user activation" ,:user_id => self.current_user_id)  if s==true
       Auditlog.create(  :task_type=>"User Deactivation",
                               :task_description => "User '#{self.name}'<#{self.email}> account is Deactivated",
-                              :task_detail => log.to_json,:user_id => self.current_user_id)  if s==false
+                              :task_detail => "user deactivation", :user_id => self.current_user_id)  if s==false
     end
     true
   end
 
-
-
   #TODO: add email to queue
+=begin
   def inform_user_if_account_is_blocked
     if self.activation_key_changed? and self.activation_key.present? and self.active == false
       UserMailer.unblock_user(self).deliver
       Auditlog.log_message(0, 'Multiple invalid login attempts',
           "Blocked user #{self.name}<#{self.email}> due to multiple Invalid login attempt",
-           "{:email => #{self.email}, :user_id => #{self.id} ")
+           "{:email => #{self.email}, :user_id => #{self.id}, :client_ip => #{$ip}}")
     end
+  end
+=end
+  def inform_user_if_account_is_blocked
+    if self.activation_key_changed? and self.activation_key.present? and self.active == false
+      UserMailer.unblock_user(self).deliver
+      @log_message = {:task_type => 'Multiple invalid login attempts', 
+                :task_description => "Blocked user #{self.name}<#{self.email}> due to multiple Invalid login attempt",
+              :task_detail =>  ActiveSupport::JSON.encode({:email => self.email, :user_id => self.id,
+                                                  :clien_ip => $ip })}
+    end
+  end
+
+  def audit_log_message
+    @log_message
   end
 
   def disable_new_user_by_default
@@ -162,10 +212,9 @@ class User < ActiveRecord::Base
   end
 
   #private
-
   def validate_email
     unless email.blank? and errors[:email].present?
-      arel =  User.where("LOWER(email) LIKE ? and deleted_at IS NULL", email.to_s.downcase)
+      arel =  User.where("LOWER(email) LIKE ?", email.to_s.downcase)
       if self.new_record?
         count = arel.count
       else
@@ -177,8 +226,6 @@ class User < ActiveRecord::Base
 
   # For security purpose always disable user account on generation
   # Let admin to enable an user account
-
-
   def disable_removing_admin
     errors.add :base, "Administrator account cannot be removed" and return false if super_admin?
   end
@@ -191,25 +238,9 @@ class User < ActiveRecord::Base
   end
 
   def clear_password_reset_token
-    self.password_reset_token = nil
-    self.password_reset_sent_at = nil
-    save!
+    self.update_attribute(:password_reset_token, nil)
+    self.update_attribute(:password_reset_sent_at, nil)
     return true
-  end
-
-  def self.send_password_reset_mail_and_entry_to_auditlog(email,ipaddress=nil)
-    email = email.strip
-    return 'Enter valid email to continue ...' unless email.match(/^[-a-z0-9_+\.]+\@([-a-z0-9]+\.)+[a-z0-9]{2,4}$/i)
-
-    user = User.find_by_email(email)
-    if user && user.active == true
-      user.send_password_reset_mail
-      user.entry_to_auditlog_table(ipaddress)
-      user
-     else
-      msg = "You will receive password reset mail if your email exist in our database and your account is active."
-      return msg
-    end
   end
 
   def entry_to_auditlog_table(ipaddress)
@@ -217,29 +248,15 @@ class User < ActiveRecord::Base
                               "Reset password info  email #{self.email} userid #{self.id} client IP #{ipaddress}")
   end
 
-  def self.find_user_by_password_reset_token(token,password)
-      user = User.find_by_password_reset_token!(token)
-      password = password.strip
-      return user unless password.present?
-
-      if user.password_reset_sent_at < 20.minutes.ago
-         msg = "Reset password link is expired."
-         return msg
-      else
-         user.update_attribute('password',password)
-         user.clear_password_reset_token
-         msg = "Password has been reset."
-         return msg
-      end
-  end
-
   def update_user(user)
-    if self.password_reset_sent_at < 20.minutes.ago
-      return 1
-    else
-      self.clear_password_reset_token
-      self.update_attributes(:password => user[:new_password])
-      return 2
+    if self.respond_to?(:password_reset_sent_at)
+      if self.password_reset_sent_at < 20.minutes.ago
+        return 1
+      else
+        self.clear_password_reset_token
+        self.update_attributes(:password => user[:new_password])
+        return 2
+      end
     end
   end
 
@@ -249,27 +266,16 @@ class User < ActiveRecord::Base
     self.update_attribute('active', true)
   end
 
-  def check_validation(password,confirmation)
-    password = password.strip
-    confirmation = confirmation.strip
-    unless password.present?
-      return -1
-    end
-    unless password == confirmation
-      return -2
-    end
-  end
-
-  def password_present?
-    password.present?
-  end
-
   def destroy
     self.active     = false
     self.deleted_at =  Time.now.to_s
     self.save
   end
   #protected
+  def email_not_present?
+    return true unless email.present?
+  end
+
   def password_present?
     self.password.to_s.strip.present?
   end

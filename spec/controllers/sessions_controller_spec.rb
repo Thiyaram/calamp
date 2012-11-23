@@ -8,9 +8,9 @@ describe SessionsController do
       role = Role.find_or_create_by_name(x)
       user = User.new(:email => "#{x}@example.com", :password => 'password',
                       :password_confirmation => 'password', :name => 'test')
-      user.role_id =  role.id
+      user.role_id =  role.id      
       user.save
-      user.active = true
+      user.active = true      
       user.save
     end
   end
@@ -19,11 +19,12 @@ describe SessionsController do
   let(:superadmin) { @superadmin ||=  User.find_by_email("superadmin@example.com") }
   let(:user) { @user ||=  User.find_by_email("user@example.com") }
 
-
   shared_examples_for "user" do
-    it "should render new page" do
-      get 'new'
-      response.should render_template('new')
+    describe "GET new" do
+      it "should render new page" do
+        get 'new'
+        response.should render_template('new')
+      end
     end
 
     describe " POST create" do
@@ -39,7 +40,7 @@ describe SessionsController do
         flash[:alert].should match 'Invalid login !!!'
       end
 
-      it "should block user account after 10 contineous invalid attempts" do
+      it "should block user account after 10 continuous invalid attempts" do
         reset_user_account
         10.times do
           post :create, {:email => valid_attributes[:email], :password => 'passwd'}, {}
@@ -54,9 +55,19 @@ describe SessionsController do
           post :create, {:email => valid_attributes[:email], :password => 'passwd'}, {}
         end
         response.should render_template("new")
-        flash[:alert].should match 'Invalid login !!!'
+        flash[:alert].should match 'Your account is blocked!.You will receive activation email if your account is active.'
       end
+    end
 
+    describe "Edit" do
+      it "should redirect to root with your account is activated successfully message." do
+        User.destroy_all
+        usr = User.create({:email => 'test@exa.com', :password => 'pass', :password_confirmation => 'pass', :name => 'test'})
+        usr.update_attribute('activation_key', SecureRandom.urlsafe_base64)
+        get :edit, {:id => usr.activation_key}, {}
+        response.should render_template('edit')
+        flash[:notice].should match 'Account activated successfully.Login to continue...'
+      end
     end
 
     describe "Logout" do
@@ -68,6 +79,7 @@ describe SessionsController do
       it "redirects to the root path" do
         delete :destroy, {}, valid_session
         response.should redirect_to(login_url)
+        flash[:notice].should match 'Successfully logged out'
       end
     end
   end
@@ -75,7 +87,11 @@ describe SessionsController do
   context "Superadmin Role" do
 
     def valid_attributes
-      {:email => "superadmin@example.com", :password => 'password'}
+      {:email => "superadmin@example.com", :password => 'password' }
+    end
+
+    def valid_activation_key
+      {:activation_key => set_activation_key }
     end
 
     def current_user_session_id
@@ -93,12 +109,22 @@ describe SessionsController do
       superadmin.save
     end
 
+    def set_activation_key
+      superadmin.activation_key ||= SecureRandom.urlsafe_base64
+      superadmin.save
+      return superadmin.activation_key
+    end
+
     include_examples "user"
   end
 
   context "Admin Role" do
      def valid_attributes
-      {:email => "admin@example.com", :password => 'password'}
+      {:email => "admin@example.com", :password => 'password' }
+    end
+
+    def valid_activation_key
+      {:activation_key => set_activation_key }
     end
 
     def current_user_session_id
@@ -115,12 +141,23 @@ describe SessionsController do
       admin.activation_key = nil
       admin.save
     end
+
+    def set_activation_key
+      admin.activation_key ||= SecureRandom.urlsafe_base64
+      admin.save
+      return admin.activation_key
+    end
+
     include_examples "user"
   end
 
   context "User Role" do
      def valid_attributes
-      {:email => "user@example.com", :password => 'password'}
+      {:email => "user@example.com", :password => 'password' }
+    end
+
+    def valid_activation_key
+      {:activation_key => set_activation_key }
     end
 
     def current_user_session_id
@@ -137,12 +174,19 @@ describe SessionsController do
       user.activation_key = nil
       user.save
     end
+
+    def set_activation_key
+      user.activation_key ||= SecureRandom.urlsafe_base64
+      user.save
+      return user.activation_key
+    end
+
     include_examples "user"
   end
 
   context "Guest role" do
     def valid_attributes
-      {:email => "guest@example.com", :password => 'password'}
+      {:email => "guest@example.com", :password => 'password' }
     end
 
     it "should render new page" do

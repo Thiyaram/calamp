@@ -10,14 +10,15 @@
       <div class="formRow">
         <div class="input-prepend">
           <span class="add-on"><i class="icon-lock"  title='Password'></i></span>
-          <%= password_field_tag "user[new_password]", nil, {:maxlength => 50, :placeholder => 'Password'} %>
+          <%= password_field_tag "user[new_password]", nil, {:maxlength => 50, :placeholder => 'Password', 
+              :autocomplete => 'off'} %>
         </div>
       </div>
 
       <div class="formRow">
         <div class="input-prepend">
           <span class="add-on"><i class="icon-lock"  title='Password Confirmation'></i></span>
-          <%= password_field_tag "user[new_password_confirmation]", nil, {:maxlength => 50, :placeholder => 'Password Confirmation'} %>
+          <%= password_field_tag "user[new_password_confirmation]", nil, {:maxlength => 50, :placeholder => 'Password Confirmation', :autocomplete => 'off'} %>
         </div>
       </div>
     </div>

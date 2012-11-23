@@ -27,15 +27,13 @@ ActiveRecord::Schema.define(:version => 20121101093550) do
 
   create_table "devices", :force => true do |t|
     t.string   "imei",            :limit => 30,                    :null => false
-    t.date     "registered_date",                                  :null => false
+    t.datetime "registered_date",                                  :null => false
     t.datetime "deleted_at"
     t.datetime "created_at",                                       :null => false
     t.datetime "updated_at",                                       :null => false
-    t.boolean  "active",                        :default => true
     t.boolean  "status",                        :default => false
   end
 
-  add_index "devices", ["active"], :name => "index_devices_on_active"
   add_index "devices", ["imei", "deleted_at"], :name => "index_devices_on_imei_and_deleted_at", :unique => true
 
   create_table "roles", :force => true do |t|
@@ -68,7 +66,7 @@ ActiveRecord::Schema.define(:version => 20121101093550) do
     t.datetime "created_at",                                               :null => false
     t.datetime "updated_at",                                               :null => false
     t.datetime "deleted_at"
-    t.string   "activation_key",         :limit => 32
+    t.string   "activation_key"
     t.integer  "invalid_attempts",       :limit => 2
     t.datetime "last_login"
   end

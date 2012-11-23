@@ -4,7 +4,7 @@ class UserMailer < ActionMailer::Base
   def unblock_user(user)
 		@user = user
  		mail :to => user.email, 
- 				 :subject => 'Alert: Account disabled due to more than 10 unsuccessful attempt'
+ 				 :subject => 'Alert: Account disabled due to more than 10 unsuccessful attempts'
   end
 
   def password_reset(user)

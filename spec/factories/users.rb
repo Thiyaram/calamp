@@ -23,4 +23,3 @@
   Role.find_or_create_by_name(x)
 end
 
-

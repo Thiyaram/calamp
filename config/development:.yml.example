@@ -1,0 +1,8 @@
+development:
+	session_expiry_time : 20
+
+test:
+	session_expiry_time : 1
+
+production:
+	session_expiry_time : 20
