@@ -22,8 +22,8 @@ Calamp::Application.routes.draw do
     resources :users
     resources :devices
   end
+  resources :logs, :only => [:index, :show]
 
-  get "/logs", :to => "logs#index", :as => "logs"
 	get "/logout", :to => "sessions#destroy", :as => "logout"
   root :to => "sessions#new"
 end

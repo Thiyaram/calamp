@@ -1,14 +1,24 @@
-<table>
-  <tr>
-    <td colspan='2'><h2>UDP server logs</h2></td>
-  </tr>
+<h2>UDP server logs</h2>
+
+<table class='table table-striped'>
+  <thead>
+    <th>#</th>
+    <th>Received Date</th>
+    <th>Message</th>
+  </thead>
+  <tbody>
   <%
     index = 0
-    @logs.each do |log|   
+    @logs.each do |log|
   %>
-    <tr class="<%= cycle('even-row','odd-row') %>"> 
+    <tr>
       <td><%= (index +=1) %></td>
-      <td><%= log %></td>
+      <td><%= l log.created_at %>
+      <td><%= link_to (truncate log.received_data.inspect, :length => 110), log_path(log) %></td>
     </tr>
-  <% end %>  
+  <% end %>
+  <tr>
+    <td colspan='3'><%= will_paginate(@logs, :renderer => WillPaginate::ActionView::LinkRenderer) %></td>
+  </tr>
+ </tbody>
 </table>

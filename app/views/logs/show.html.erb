@@ -1,0 +1,20 @@
+<div style='width:100%;overflow:auto'>
+  <div class='pull-left'><h2>Message Details</h2></div>
+  <div class='pull-right'><%= link_to 'Back to Logs', logs_path %></div>
+</div>
+
+<div>Received Message</div>
+<div class='well'>
+  <%= @log.received_data.inspect %>
+</div>
+
+<div>Decoded Message</div>
+<div class='well'>
+  <%= @log.decoded_message.inspect %>
+</div>
+
+
+<div>Expected Server Response</div>
+<div class='well'>
+  <%= Message.generate_response(@log.received_data).inspect %>
+</div>
